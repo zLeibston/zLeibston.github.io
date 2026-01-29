@@ -5,7 +5,7 @@ date: 2026-01-13
 draft: false
 cover:
     # 这是一个自动生成风景图的网站，每次刷新都不一样
-    image: "https://picsum.photos/id/2/800/400" 
+    image: "https://picsum.photos/800/400" 
     alt: "随机封面"
     caption: " "
 ---
