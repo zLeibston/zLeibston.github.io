@@ -5,14 +5,16 @@ languageCode = "zh-cn"
 title = "zLeibston's World"
 theme = "PaperMod"
 
-[params]
-  mainSections = ["posts", "rl-notes"] # 只有加在这里的文件夹，才会显示在首页列表
+
+  
 
 [outputs]
   home = ["HTML", "RSS", "JSON"]
 
 [params]
   defaultTheme = "auto" # 自动跟随系统（白天/黑夜）
+
+  mainSections = ["posts", "rl-notes"] # 只有加在这里的文件夹，才会显示在首页列表
 
   # --- 核心设置：开启个人名片模式 ---
   [params.profileMode]
