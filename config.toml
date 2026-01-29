@@ -1,64 +1,60 @@
-# =================================================
-#  HUGO 配置文件 (zLeibston 的博客)
-#  这是已知无误的最终版本
-# =================================================
 
-# --- A. 顶级设置 (必须放在最上面，不能被任何[]包裹) ---
-baseURL = " https://zLeibston.github.io/ "
+
+baseURL = "https://zLeibston.github.io/"
 languageCode = "zh-cn"
 title = "zLeibston's World"
 theme = "PaperMod"
 
-# --- B. 输出设置 (为搜索功能服务) ---
+
+  
+
 [outputs]
   home = ["HTML", "RSS", "JSON"]
 
-# --- C. 主题参数 (所有 [params] 相关的内容都写在这里面) ---
 [params]
-  defaultTheme = "auto"
-  mainSections = ["posts", "rl-notes"] 
-  math = true # 开启数学公式
+  defaultTheme = "auto" # 自动跟随系统（白天/黑夜）
 
-  # 首页的个人名片模式
+  mainSections = ["posts", "rl-notes"] # 只有加在这里的文件夹，才会显示在首页列表
+
+  math = true
+
+  # --- 核心设置：开启个人名片模式 ---
   [params.profileMode]
     enabled = true
-    title = "zLeibston"
-    subtitle = "给时光以生命"
-    imageUrl = " https://github.com/zLeibston.png " 
+    title = "zLeibston" # 这里改你的名字
+    subtitle = "给时光以生命" # 这里改你的签名
+    # 下面这个魔法链接会自动抓取你 GitHub 的头像！不用自己上传！
+    imageUrl = "https://github.com/zLeibston.png" 
     imageTitle = "Avatar"
     imageWidth = 150
     imageHeight = 150
 
-  # 网页小图标
+  # --- 社交图标 ---
+  [[params.socialIcons]]
+    name = "github"
+    url = "https://github.com/zLeibston"
+  [[params.socialIcons]]
+    name = "bilibili"
+    url = "https://www.bilibili.com/" 
   [params.assets]
     favicon = "favicon.png"
     favicon16x16 = "favicon.png"
     favicon32x32 = "favicon.png"
     apple_touch_icon = "favicon.png"
 
-  # 社交图标 (这是列表，必须放在 [params] 板块的最后)
-  [[params.socialIcons]]
-    name = "github"
-    url = " https://github.com/zLeibston "
-  [[params.socialIcons]]
-    name = "bilibili"
-    url = " https://www.bilibili.com/ " 
-
-# --- D. 顶部导航菜单 ---
+# --- 顶部导航栏 ---
 [[menu.main]]
   identifier = "posts"
   name = "随笔"
   url = "/posts/"
   weight = 1
-
-[[menu.main]]
-  identifier = "rl-notes"
-  name = "🤖RL自学笔记"
-  url = "/rl-notes/"
-  weight = 2
-
 [[menu.main]]
   identifier = "search"
   name = "🔍搜索"
   url = "/search/"
-  weight = 3
+  weight = 2
+[[menu.main]]
+  identifier = "rl-notes"
+  name = "RL自学笔记"  # 导航栏直接显示这个名字
+  url = "/rl-notes/"    # 对应文件夹名字
+  weight = 2
