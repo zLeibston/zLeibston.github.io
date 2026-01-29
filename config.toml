@@ -47,7 +47,7 @@ theme = "PaperMod"
 
 [[menu.main]]
   identifier = "rl-notes"
-  name = "🤖RL自学笔记"
+  name = "RL自学笔记"
   url = "/rl-notes/"
   weight = 2
 
