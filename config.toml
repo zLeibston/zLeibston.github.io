@@ -1,19 +1,25 @@
+# =================================================
+#  HUGO 配置文件 (zLeibston 的博客)
+#  这是已知无误的最终版本
+# =================================================
+
+# --- A. 顶级设置 (必须放在最上面，不能被任何[]包裹) ---
 baseURL = " https://zLeibston.github.io/ "
 languageCode = "zh-cn"
 title = "zLeibston's World"
 theme = "PaperMod"
 
-# --- 1. 输出设置 ---
+# --- B. 输出设置 (为搜索功能服务) ---
 [outputs]
   home = ["HTML", "RSS", "JSON"]
 
-# --- 2. 参数设置 ---
+# --- C. 主题参数 (所有 [params] 相关的内容都写在这里面) ---
 [params]
   defaultTheme = "auto"
   mainSections = ["posts", "rl-notes"] 
   math = true # 开启数学公式
 
-  # --- 个人名片 ---
+  # 首页的个人名片模式
   [params.profileMode]
     enabled = true
     title = "zLeibston"
@@ -23,14 +29,14 @@ theme = "PaperMod"
     imageWidth = 150
     imageHeight = 150
 
-  # --- ✅ 修正点：网页图标必须放在 社交图标 之前！ ---
+  # 网页小图标
   [params.assets]
     favicon = "favicon.png"
     favicon16x16 = "favicon.png"
     favicon32x32 = "favicon.png"
     apple_touch_icon = "favicon.png"
 
-  # --- 社交图标 (这是列表，必须放在 params 的最后面) ---
+  # 社交图标 (这是列表，必须放在 [params] 板块的最后)
   [[params.socialIcons]]
     name = "github"
     url = " https://github.com/zLeibston "
@@ -38,7 +44,7 @@ theme = "PaperMod"
     name = "bilibili"
     url = " https://www.bilibili.com/ " 
 
-# --- 3. 顶部导航栏 ---
+# --- D. 顶部导航菜单 ---
 [[menu.main]]
   identifier = "posts"
   name = "随笔"
@@ -47,7 +53,7 @@ theme = "PaperMod"
 
 [[menu.main]]
   identifier = "rl-notes"
-  name = "RL自学笔记"
+  name = "🤖RL自学笔记"
   url = "/rl-notes/"
   weight = 2
 
