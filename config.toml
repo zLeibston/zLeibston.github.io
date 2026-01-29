@@ -1,0 +1,4 @@
+baseURL = "https://zLeibston.github.io/"
+languageCode = "zh-cn"
+title = "My_Blog"
+theme = "PaperMod"
