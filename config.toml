@@ -5,6 +5,9 @@ languageCode = "zh-cn"
 title = "zLeibston's World"
 theme = "PaperMod"
 
+[params]
+  mainSections = ["posts", "rl-notes"] # 只有加在这里的文件夹，才会显示在首页列表
+
 [outputs]
   home = ["HTML", "RSS", "JSON"]
 
@@ -38,11 +41,16 @@ theme = "PaperMod"
 # --- 顶部导航栏 ---
 [[menu.main]]
   identifier = "posts"
-  name = "文章列表"
+  name = "随笔"
   url = "/posts/"
   weight = 1
 [[menu.main]]
   identifier = "search"
   name = "🔍搜索"
   url = "/search/"
+  weight = 2
+[[menu.main]]
+  identifier = "rl-notes"
+  name = "🤖RL自学笔记"  # 导航栏直接显示这个名字
+  url = "/rl-notes/"    # 对应文件夹名字
   weight = 2
