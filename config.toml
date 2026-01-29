@@ -1,4 +1,38 @@
 baseURL = "https://zLeibston.github.io/"
 languageCode = "zh-cn"
-title = "My_Blog"
+title = "zLeibston's World"
 theme = "PaperMod"
+
+[params]
+  defaultTheme = "auto" # 自动跟随系统（白天/黑夜）
+
+  # --- 核心设置：开启个人名片模式 ---
+  [params.profileMode]
+    enabled = true
+    title = "zLeibston" # 这里改你的名字
+    subtitle = "给时光以生命" # 这里改你的签名
+    # 下面这个魔法链接会自动抓取你 GitHub 的头像！不用自己上传！
+    imageUrl = "https://github.com/zLeibston.png" 
+    imageTitle = "Avatar"
+    imageWidth = 150
+    imageHeight = 150
+
+  # --- 社交图标 ---
+  [[params.socialIcons]]
+    name = "github"
+    url = "https://github.com/zLeibston"
+  [[params.socialIcons]]
+    name = "bilibili"
+    url = "https://www.bilibili.com/" 
+
+# --- 顶部导航栏 ---
+[[menu.main]]
+  identifier = "posts"
+  name = "文章列表"
+  url = "/posts/"
+  weight = 1
+[[menu.main]]
+  identifier = "search"
+  name = "🔍搜索"
+  url = "/search/"
+  weight = 2
