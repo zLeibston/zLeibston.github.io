@@ -61,5 +61,9 @@ theme = "PaperMod"
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true  # 允许渲染 HTML（这对于复杂的数学公式渲染至关重要）
-  [markup.highlight]
-    noClasses = false
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.passthrough]
+        enable = true
+        [markup.goldmark.extensions.passthrough.delimiters]
+          block = [['$$', '$$'], ['\\[', '\\]']]
+          inline = [['$', '$'], ['\\(', '\\)']]
