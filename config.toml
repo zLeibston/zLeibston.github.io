@@ -58,3 +58,10 @@ theme = "PaperMod"
   name = "RL自学笔记"  # 导航栏直接显示这个名字
   url = "/rl-notes/"    # 对应文件夹名字
   weight = 2
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true  # 允许渲染 HTML（这对于复杂的数学公式渲染至关重要）
+  [markup.highlight]
+    noClasses = false
