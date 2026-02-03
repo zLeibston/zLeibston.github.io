@@ -16,16 +16,14 @@ cover:
 2. 若使用类似监督学习的方法，即最大化：
 $$
 \mathbb {E}_{s_t\sim P_{data}(s_t)}(\log\pi_\theta(a_t\mid s_t))
-$$  
-其中，$(s_t,a_t)$为样本对，则称为“**行为克隆**”，会陷入分布迁移。即：训练用的$s_t\sim P_{data}$,而测试用的$P_{\pi_\theta}(s_t)\neq P_{data}(s_t)$,一个小错误会导致更大的错。
+$$  其中，$(s_t,a_t)$为样本对，则称为“**行为克隆**”，会陷入分布迁移。即：训练用的$s_t\sim P_{data}$,而测试用的$P_{\pi_\theta}(s_t)\neq P_{data}(s_t)$,一个小错误会导致更大的错。
 3. 简单的行为克隆（类似监督学习）会导致T个时间步之内的犯错的个数为$O(\epsilon T^2)$,其中$\epsilon$是监督学习后Agent看已经见过的state时犯错的概率的上界。具体如图：![](/imgs/imgs4rl-note/1.png)注意，$c(s,a)$是用来评估的，不是损失函数!
 4. 一个更一般的分析：
 假设：$\pi_{\theta}(a\neq \pi^{*}(s)\mid s)\le\epsilon$，对任意$s\sim P_{train}(s)$。注意，这里的$P_{train}$是代表了客观世界的规律，并不只局限于训练集，具体如图：![](/imgs/imgs4rl-note/2.png)
     1. 现在定义两个概率分布的L1范数或**总变差距离**：
     $$
-    \mid\mid p-q\mid\mid x=\sum_x \mid p(x)-q(x)\mid=\int\mid p(x)-q(x)\mid dx
-    $$
-    而对任意两个分布p和q,有结论：$\mid p-q\mid\le2$.
+    \mid\mid p-q\mid\mid =\sum_x \mid p(x)-q(x)\mid=\int\mid p(x)-q(x)\mid dx
+    $$而对任意两个分布p和q,有结论：$\mid p-q\mid\le2$.
     2. 推导如图：![](/imgs/imgs4rl-note/3.png)其中所有绝对值符号都是指的分布意义上的总变差距离。因此得到连续概率分布下，行为克隆的成本的上界是$O(\epsilon T^2)$.
 1. 行为克隆的常见优化方法之一：不能全使用完美的标签对，要包含一些错误state对应正确action的标签对（就是数据增强），这样才有可能纠错，不至于“一步错，后面错上加错”。
 2. 行为克隆的常见优化方法之二：目标条件行为克隆。如图：![](/imgs/imgs4rl-note/4.png)
