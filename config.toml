@@ -51,7 +51,7 @@ theme = "PaperMod"
   identifier = "search"
   name = "🔍搜索"
   url = "/search/"
-  weight = 2
+  weight = 100
 [[menu.main]]
   identifier = "rl-notes"
   name = "RL自学笔记"  # 导航栏直接显示这个名字
