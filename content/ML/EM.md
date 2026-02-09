@@ -14,7 +14,7 @@ cover:
 ### 1. 问题阐述
 假设我们有观测数据集合 $X = \{x_1, x_2, \dots, x_N\}$，隐含变量集合 $Z = \{z_1, z_2, \dots, z_N\}$（可以理解为不可观测的中间变量,会随样本而变化，是每个样本特有的、不可直接观测的局部属性/状态），要估计参数 $\theta$。我们用对数极大似然估计：$$L(\theta) = \sum_{i=1}^N \log p(x_i | \theta) = \sum_{i=1}^N \log \sum_{z_i} p(x_i, z_i | \theta)$$
 ### 2.推导
-为了简化，我们考虑一个样本的情况，即最大化$\log p(x|\theta)$。参考VI中的推导，我们得到：$$\log p(x|\theta) = \underbrace{\sum_z q(z) \log \frac{p(x, z|\theta)}{q(z)}}_{\text{ELBO}(q, \theta)} + \underbrace{KL(q(z) || p(z|x, \theta))}_{\text{KL 散度}}$$其中$q(z)$是隐变量的分布函数，随样本变化。 $KL>0$,而利用琴生不等式（对于凹函数 $\log(x)$，有 $E[\log X] \le \log E[X]$，当且仅当随机变量$X$为常数取等）放缩得到：$$\log p(x|\theta)=\log \sum_z q(z) \frac{p(x, z | \theta)}{q(z)} \ge \sum_z q(z) \log \frac{p(x, z | \theta)}{q(z)}$$两种方法都可得到ELBO是$\log p(x|\theta)$的下界。只需最大化$ELBO=\mathbb{E}_{z\sim q(\cdot)}\frac{p(x,z|\theta)}{q(z)}$，
+为了简化，我们考虑一个样本的情况，即最大化$\log p(x|\theta)$。参考VI中的推导，我们得到：$$\log p(x|\theta) = \underbrace{\sum_z q(z) \log \frac{p(x, z|\theta)}{q(z)}}_{\text{ELBO}(q, \theta)} + \underbrace{KL(q(z) || p(z|x, \theta))}_{\text{KL 散度}}$$其中$q(z)$是隐变量的分布函数，随样本变化。 $KL>0$,而利用琴生不等式（对于凹函数 $\log(x)$，有 $E[\log X] \le \log E[X]$，当且仅当随机变量$X$为常数取等）放缩得到：$$\log p(x|\theta)=\log \sum_z q(z) \frac{p(x, z | \theta)}{q(z)} \ge \sum_z q(z) \log \frac{p(x, z | \theta)}{q(z)}$$两种方法都可得到ELBO是$\log p(x|\theta)$的下界。只需最大化$ELBO=\mathbb{E}_{z\sim q(\cdot)}\log\frac{p(x,z|\theta)}{q(z)}$，
 
 ### 3.算法
 EM算法是一个迭代算法。首先，随机初始化带估计参数$\theta^{(0)}$。我们的最终目标是就是最大化似然函数$L(\theta)$，但是你会发现，如果你想估算参数$\theta$,你必须先知道每个点属于哪个簇（即隐变量$Z$）。如果你想估算隐变量 $Z$（即点属于哪个簇）：你必须先知道每个簇的参数$\theta$。
@@ -54,7 +54,7 @@ VI:
 EM：
 ![](/imgs/img4ML/em.png)
 
-### 6.说明之四：若隐变量空间连续，如何处理
+### 6.说明之四：若隐变量空间连续，如何处理:MCEM (Monte Carlo EM) 算法
 采用蒙特卡洛近似。从后验分布采样$S$个样本：
  $$z_i^{(1)}, z_i^{(2)}, ..., z_i^{(S)} \sim p(z_i|x_i, \theta^{(t)})$$然后用样本均值近似期望：
 
