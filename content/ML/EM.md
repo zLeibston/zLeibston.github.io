@@ -1,7 +1,7 @@
 ---
 title: "EM算法"
 math: true
-date: 2026-02-8
+date: 2026-02-08
 draft: false
 cover:
     # 这是一个自动生成风景图的网站，每次刷新都不一样

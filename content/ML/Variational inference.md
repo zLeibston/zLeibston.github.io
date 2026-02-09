@@ -1,7 +1,7 @@
 ---
 title: "变分推断"
 math: true
-date: 2026-02-6
+date: 2026-02-06
 draft: false
 cover:
     # 这是一个自动生成风景图的网站，每次刷新都不一样
