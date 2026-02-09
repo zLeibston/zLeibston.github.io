@@ -31,6 +31,7 @@ $$\theta^{(t+1)} = \arg \max_\theta Q(\theta, \theta^{(t)})$$
 - 若$\nabla_\theta Q(\theta, \theta^{(t)})=0$有闭式解，直接带入即可
 - 若如果没有闭式解，但 $Q(\theta, \theta^{(t)})$ 是凸函数，可选用梯度上升、牛顿法、拟牛顿法、坐标上升法等。
 - 若$Q(\theta, \theta^{(t)})$不是凸函数，可用梯度上升找局部最优，只要保证$Q(\theta^{(t+1)},\theta^{(t)})\ge Q(\theta^{(t)},\theta^{(t)})$即可。
+  
 最后，E步M步交替进行即可。
 ### 4.说明之一：为什么M步要优化Q函数而不是似然函数，即为什么优化Q函数等价于优化似然函数
 似然函数:$$\begin{aligned}L(\theta) &=\sum_{i=1}^N \log \sum_{z_i} p(x_i, z_i | \theta)\\
