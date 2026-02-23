@@ -95,4 +95,62 @@ cover:
          4. 总结ppo的流程：![](/imgs/imgs4rl-note/17.png)
       3. SAC:一种更加完全的off-policy method。每一轮次都执行策略搜集数据存入replay buffer，然后从replay buffer中采样一批数据$\{(s,a,r,s')\}$，实现数据复用。但若还用$\{s_i,r_i+\gamma\hat{V}^{\pi}_{\phi}(s_i')\}$做training data，则这里的$a$是旧策略下产生的动作，使得由它产生的那个$r$和$s$共同构成的$\text{Target}$ y不再能代表 V 函数所需要的那个“对所有$a\sim \pi$求期望"的平均值了。因此，我们换用神经网络估计Q函数。因为$Q^{\pi_\theta}(\mathbf{s}, \mathbf{a}) = r(\mathbf{s}, \mathbf{a}) + \gamma \mathbb{E}_{\mathbf{s}' \sim p(\cdot|\mathbf{s}, \mathbf{a}), \bar{\mathbf{a}}' \sim \pi_\theta(\cdot|\mathbf{s}')} [Q^{\pi_\theta}(\mathbf{s}', \bar{\mathbf{a}}')]$,故我们从replay buffer里面采样$(s_i,a_i,s_i')$后，从**当前策略**中采样得$a_i'$，然后用$\{((s_i,a_i),r(s_i,a_i)+\gamma Q^{\pi_{\theta}}(s'_i,a'_i))\}$做监督训练的training data。然后目标函数也放弃用基线，将梯度由$\nabla_{\theta} J(\theta)=\frac{1}{N}\sum_i\nabla_{\theta}\log\pi_{\theta}(a_i|s_i)\hat{A}^{\pi}(s_i,a_i)$变为$\nabla_{\theta} J(\theta)=\frac{1}{N}\sum_i\nabla_{\theta}\log\pi_{\theta}(a_i|s_i)\hat{Q}^{\pi}(s_i,a_i)$。因而，SAC得算法流程：![](/imgs/imgs4rl-note/18.png)
 
-   
+5. GRPO（常用于LLM）
+   1. **动机**
+   PPO的Critic 模型太大，计算成本高。我们想要丢掉Critic模型。既然 Critic 的本质是提供一个 Baseline（基线）来降低 Advantage 估计的方差，那我们完全可以针对同一个 Prompt 采样一组（Group）回答，然后用这组回答的内部统计量（均值和标准差）来作为 Baseline。这样既去掉了庞大的 Critic 模型，又天然实现了相对奖励的缩放。这就是GRPO的核心思想
+   2. **问题规定**
+   我们将大模型的生成任务定义为一个有限步的 MDP：$(\mathcal{S}, \mathcal{A}, P, R, \rho_0, \gamma)$。
+
+   *   状态 (State) $s_t$：在时间步 $t$，状态是已生成的序列，即 $s_t = [q, a_1, a_2, \dots, a_{t-1}]$。其中 $q$ 是初始 Prompt，$a_i$ 是之前生成的 Token。
+   *   动作 (Action) $a_t$：模型从词表 $\mathcal{V}$ 中选择的下一个 Token。
+   *   状态转移 (Transition) $P$：在 LLM 场景下，转移是确定性的。执行动作 $a_t$ 后，下一个状态 $s_{t+1} = [s_t, a_t]$（即简单的字符串拼接）。
+   *   策略 (Policy) $\pi_\theta(a|s)$：当前正在训练的参数化语言模型。
+   *   初始状态分布 $\rho_0$：从训练语料库中抽取 Prompt $q$ 的分布。
+   *   奖励 (Reward) $R(s, a)$：在大多数 LLM 推理任务中，奖励是稀疏的。只有当生成终止符（$a_T = \text{EOS}$）时，环境才会给出总奖励 $R(\tau)$，其中 $\tau$ 是完整轨迹。
+  
+   3. **pipeline**
+      ###### Step 1: 采样数据批次 
+      从数据集 $\mathcal{D}$ 中随机无放回采样一个 Batch 的初始状态（Prompts），记为 $\mathcal{B} \sim \rho_0$。
+      此时，固定当前策略为旧策略 $\pi_{\theta_{old}} \leftarrow \pi_{\theta_k}$。
+
+      ###### Step 2: 群体轨迹生成 (Group Rollout) 
+      对于 $\mathcal{B}$ 中的**每一个**初始状态 $s_0^{(i)}$：
+      使用 $\pi_{\theta_{old}}$ 独立采样 $G$ 条完整的马尔可夫轨迹（即生成 $G$ 个回答）：
+      $$ \mathcal{T}^{(i)} = \{\tau_1^{(i)}, \tau_2^{(i)}, \dots, \tau_G^{(i)}\}, \quad \tau_g^{(i)} \sim \pi_{\theta_{old}}(\cdot \mid s_0^{(i)}) $$
+
+      ###### Step 3: 终端奖励评估与相对优势计算 
+      对于**每一个**初始状态 $s_0^{(i)}$ 对应的轨迹群组 $\mathcal{T}^{(i)}$：
+      1.  计算轨迹总奖励：通过环境（Reward Model ）获取每条轨迹的终端奖励 $r_g^{(i)} = R(\tau_g^{(i)})$。
+      2.  计算群组统计量：求该组奖励的经验均值 $\mu^{(i)}$ 和标准差 $\sigma^{(i)}$。
+      3.  优势广播：计算第 $g$ 条轨迹的群体相对优势 $\hat{A}_g^{(i)}$。由于是稀疏奖励，将该优势同等地广播到该轨迹 $\tau_g^{(i)}$ 上的每一个时间步的动作（即Token）上 ：
+         $$\hat{A}_g^{(i)}= \hat{A}_{g,t}^{(i)} = \frac{R(\tau_g^{(i)}) - \mu^{(i)}}{\sigma^{(i)} + \epsilon}，t \in [1, T_g] $$
+      其中，   $ \mu^{(i)} = \frac{1}{G} \sum_{g=1}^G r_g^{(i)} $ ,   $\sigma^{(i)} = \sqrt{\frac{1}{G} \sum_{g=1}^G (r_g^{(i)} - \mu^{(i)})^2} $
+
+      ###### Step 4: 策略代理目标优化 (Policy Optimization) ——【参数更新】
+      收集完 Batch $\mathcal{B}$ 内所有 Prompt 产生的 $B \times G$ 条轨迹数据后，进入内部微调循环 (Inner Epochs $e = 1, \dots, M$)：
+
+      在这些生成的数据上，使用梯度上升（如 AdamW 优化器）更新当前参数 $\theta$，以**最大化**以下代理目标函数：
+   $$J_{GRPO}(\theta) = \frac{1}{|\mathcal{B}|} \sum_{i=1}^{|\mathcal{B}|} \left[ \frac{1}{G} \sum_{g=1}^G \sum_{t=1}^{T_{i,g}} \left( \mathcal{L}_{clip}^{(i,g,t)}(\theta) - \beta \mathbb{D}_{KL}^{(i,g,t)}(\theta) \right) \right]$$
+      其中，单步动作的截断优势项为：
+      $$\mathcal{L}_{clip}^{(i,g,t)}(\theta) = \min \left( \frac{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_{\theta_{old}}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})} \hat{A}_g^{(i)}, \text{clip} \left( \frac{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_{\theta_{old}}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}, 1-\epsilon, 1+\epsilon \right) \hat{A}_g^{(i)} \right)$$
+      无偏 KL 散度惩罚项为：
+      $$\mathbb{D}_{KL}^{(i,g,t)}(\theta) = \frac{\pi_{ref}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})} - \log \frac{\pi_{ref}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})} - 1$$
+
+      *(经过 $M$ 个 Epoch 的优化后，更新全局策略 $\theta_{k+1} \leftarrow \theta$，清空本次采样的轨迹数据)*
+   4. 关于以上KL散度的说明
+      以上pipeline中的KL散度项为： $\mathbb{D}_{KL}^{(i,g,t)}(\theta) = \frac{\pi_{ref}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})} - \log \frac{\pi_{ref}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})} - 1$,但是正常的KL散度长这样：$ D_{KL}(P || Q) = \sum_{x} P(x) \log \frac{P(x)}{Q(x)} $，换到LLM的情境下就是：$ D_{KL}(\pi_\theta || \pi_{ref}) = \mathbb{E}_{a \sim \pi_\theta} \left[ \log \frac{\pi_\theta(a|s)}{\pi_{ref}(a|s)} \right] $。为什么会有以上的式子？因为在整个transformer输出概率向量上算严格的KL散度成本太大，人们折中只看模型实际生成的那个 Token $a_t$，直接用它的对数概率差来近似：$\hat{k}_1 = \log \pi_\theta(a_t) - \log \pi_{ref}(a_t)$，但这个值不满足KL散度大于等于0的特点，可能是负数，会被LLM发现漏洞。所以令比值 $x = \frac{\pi_{ref}(a_t|s_t)}{\pi_\theta(a_t|s_t)}$，构造函数：
+      $$ f(x) = x - \log x - 1 $$显然$f(x)\ge 0$,满足非负，且：令 $x = \frac{\pi_{ref}(a|s)}{\pi_\theta(a|s)}$，我们计算 $\mathbb{E}_{a \sim \pi_\theta(\cdot|s)} [x - \log x - 1]$：
+
+      第一项：
+      $$ \mathbb{E}_{a \sim \pi_\theta(\cdot|s)} \left[ \frac{\pi_{ref}(a|s)}{\pi_\theta(a|s)} \right] = \sum_{a \in \mathcal{V}} \pi_\theta(a|s) \cdot \frac{\pi_{ref}(a|s)}{\pi_\theta(a|s)} = \sum_{a \in \mathcal{V}} \pi_{ref}(a|s) = 1 $$
+      第二项：
+          $$ \mathbb{E}_{a \sim \pi_\theta(\cdot|s)} \left[ \log \frac{\pi_{ref}(a|s)}{\pi_\theta(a|s)} \right] = \sum_{a \in \mathcal{V}} \pi_\theta(a|s) \log \frac{\pi_{ref}(a|s)}{\pi_\theta(a|s)} = - D_{KL}(\pi_\theta(\cdot|s) \| \pi_{ref}(\cdot|s)) $$
+      合并:
+          $$ \mathbb{E} [x - \log x - 1] = 1 - (- D_{KL}) - 1 = D_{KL}(\pi_\theta(\cdot|s) \| \pi_{ref}(\cdot|s)) $$
+      证得：我们采用的KL散度项$\mathbb{D}_{KL}^{(i,g,t)}(\theta) = \frac{\pi_{ref}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})} - \log \frac{\pi_{ref}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})} - 1$是标准KL散度的一个无偏估计。
+
+
+         
+
+
+      
