@@ -136,6 +136,7 @@ cover:
       无偏 KL 散度惩罚项为：
       $$\mathbb{D}_{KL}^{(i,g,t)}(\theta) = \frac{\pi_{ref}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})} - \log \frac{\pi_{ref}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})} - 1$$
 
+      其中$\theta_{\text{ref}}$无论何时都是指预训练或仅监督微调的模型，而$\theta_{\text{old}}$是指上一步GRPO得到的模型，二者是不一样的。
       *(经过 $M$ 个 Epoch 的优化后，更新全局策略 $\theta_{k+1} \leftarrow \theta$，清空本次采样的轨迹数据)*
    4. 关于以上KL散度的说明
       以上pipeline中的KL散度项为： $\mathbb{D}_{KL}^{(i,g,t)}(\theta) = \frac{\pi_{ref}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})} - \log \frac{\pi_{ref}(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})}{\pi_\theta(a_{g,t}^{(i)} \mid s_{g,t}^{(i)})} - 1$,但是正常的KL散度长这样：$ D_{KL}(P || Q) = \sum_{x} P(x) \log \frac{P(x)}{Q(x)} $，换到LLM的情境下就是：$ D_{KL}(\pi_\theta || \pi_{ref}) = \mathbb{E}_{a \sim \pi_\theta} \left[ \log \frac{\pi_\theta(a|s)}{\pi_{ref}(a|s)} \right] $。为什么会有以上的式子？因为在整个transformer输出概率向量上算严格的KL散度成本太大，人们折中只用模型实际生成的那个 Token $a_t$，直接用它的对数概率差来近似：$\hat{k}_1 = \log \pi_\theta(a_t) - \log \pi_{ref}(a_t)$，但这个值不满足KL散度大于等于0的特点，可能是负数，会被LLM发现漏洞。所以令比值 $x = \frac{\pi_{ref}(a_t|s_t)}{\pi_\theta(a_t|s_t)}$，构造函数：
